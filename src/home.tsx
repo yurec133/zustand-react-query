@@ -4,10 +4,10 @@ import ChildComponent from "./children";
 
 const Home: React.FC = () => {
   return (
-      <>
-        <h1>2. Home</h1>
-        <ChildComponent />
-      </>
+    <>
+      <h1>2. Home</h1>
+      <ChildComponent />
+    </>
   );
 };
 

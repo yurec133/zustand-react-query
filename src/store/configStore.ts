@@ -17,6 +17,6 @@ export const useConfigStore = create<ConfigState>()(
 
       setConfig: (data) => set((state) => ({ ...state, ...data })),
     }),
-    { name: "ConfigStore" }, // Назва, яка відображатиметься в Redux DevTools
+    { name: "ConfigStore" },
   ),
 );

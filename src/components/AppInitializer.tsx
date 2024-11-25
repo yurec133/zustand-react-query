@@ -13,7 +13,12 @@ import { useConfigStore } from "../store/configStore";
 const AppInitializer: React.FC = () => {
   const setConfig = useConfigStore((state) => state.setConfig);
 
-  const { data: uuid, error: uuidError } = useQuery<UuidResponse>({
+  // Fetch UUID
+  const {
+    data: uuid,
+    isLoading: isUuidLoading,
+    error: uuidError,
+  } = useQuery<UuidResponse>({
     queryKey: ["uuid"],
     queryFn: async () => {
       const uuid = await fetchUUID();
@@ -22,43 +27,45 @@ const AppInitializer: React.FC = () => {
     },
   });
 
-  const imagePathQuery = useQuery<ImagePathResponse>({
-    queryKey: ["imagePath", uuid?.uuid],
-    queryFn: async () => {
-      if (!uuid?.uuid) {
-        throw new Error("UUID is undefined or null");
-      }
-      try {
+  // Fetch Image Path
+  const { isLoading: isImagePathLoading, error: imagePathError } =
+    useQuery<ImagePathResponse>({
+      queryKey: ["imagePath", uuid?.uuid],
+      queryFn: async () => {
+        if (!uuid?.uuid) {
+          throw new Error("UUID is undefined or null");
+        }
         const data = await fetchImagePath(uuid.uuid);
         setConfig({ imagePath: data.url });
         return data;
-      } catch (error) {
-        console.error("Error fetching image path:", error);
-        throw error;
-      }
-    },
-    enabled: !!uuid?.uuid,
-  });
+      },
+      enabled: !!uuid?.uuid,
+    });
 
-  const stripeKeyQuery = useQuery<StripeKeyResponse>({
-    queryKey: ["stripeKey"],
-    queryFn: async () => {
-      try {
+  // Fetch Stripe Public Key
+  const { isLoading: isStripeKeyLoading, error: stripeKeyError } =
+    useQuery<StripeKeyResponse>({
+      queryKey: ["stripeKey"],
+      queryFn: async () => {
         const data = await fetchStripeKey();
         setConfig({ stripePublicKey: data.id });
         return data;
-      } catch (error) {
-        console.error("Error fetching Stripe key:", error);
-        throw error;
-      }
-    },
-  });
+      },
+    });
+
+  const isLoading = isUuidLoading || isImagePathLoading || isStripeKeyLoading;
 
   return (
     <div>
-      {uuidError && <p>Error: {uuidError.message}</p>}
-      {imagePathQuery.error && <p>Error: {imagePathQuery.error.message}</p>}
-      {stripeKeyQuery.error && <p>Error: {stripeKeyQuery.error.message}</p>}
+      {isLoading && <p>Loading configuration...</p>}
+
+      {uuidError && <p>Error loading UUID: {uuidError.message}</p>}
+      {imagePathError && (
+        <p>Error loading Image Path: {imagePathError.message}</p>
+      )}
+      {stripeKeyError && (
+        <p>Error loading Stripe Key: {stripeKeyError.message}</p>
+      )}
     </div>
   );
 };
